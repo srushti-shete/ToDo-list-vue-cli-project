@@ -1,5 +1,6 @@
 # todo
 
+Link: https://todolist-vue-cli-project.netlify.app
 ## Project setup
 ```
 npm install
