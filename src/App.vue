@@ -4,17 +4,33 @@
             <h2 style="text-align: center">ToDo App</h2>
             <input type="text" v-model="todo" id="name" class="input" placeholder="Please enter your ToDo" />
             <h4 v-if="isError==true">Please insert a value</h4>
+            <input type="text" class="input" placeholder="Sr no." @keypress="validateNumber" v-model="priority" />
+            <h4 v-if="isErrorNum">Please insert a number</h4>
+            <br/>
             <input type="button" value="Add" id="btnClick" class="btn" 
             @click="storeToDo"/>
             <!-- <span id="error"></span> -->
             <h3 style="padding-left: 10px;">ToDo List</h3>
             <hr size="1" width="100%" color="white" />
             <ul id="box">
-                <li v-for="(todo,index) in todos" :key="index">
-                    {{ todo }}
+                <li v-for="(todo,index) in todos" :key="index" :class="{'strikeout': todo.isStrikedOff == true}">
+                   {{ todo.seq }}
+                   {{ todo.name }} 
+                   
 
                     <button @click="deleteToDo(index)" class="remove">Remove</button>
                 </li>
+            </ul>
+            <h3 style="padding-left:10px;">Removed List</h3>
+            <hr size="1" width="100%" color="white">
+            <ul>
+                    <li v-for="(todo, index) in removedTodos" :key="index" >
+                       <div class="strikeout">
+                          {{ todo.seq }} .
+                          {{ todo.name }}
+                       </div> 
+                        <!-- <button class="remove-btn delete-btn" @click="clearTodo(index) ">Delete</button> -->
+                    </li>
             </ul>
         </div>
 <!-- 
@@ -32,23 +48,51 @@ export default {
         todo: '',
         todos: [],
         isError: false,
-        }
+        priority: "",
+        priorities: [],
+        isErrorNum: false,
+        removeTodo: "",
+        removedTodos: []
+        };
 
     },
 
     methods: {
+            validateNumber()
+        {
+         
+          let keyCode = event.keyCode;
+          if(keyCode < 48 || keyCode > 57)
+          {
+            event.preventDefault();
+            this.isErrorNum = true
+          }
+          else{
+            this.isErrorNum = false
+          }
+        },
             storeToDo() {
                 if(this.todo!=""){
-                this.todos.push(this.todo)
-                this.todo=''
-                this.isError=false
+                 this.todos.push({
+                  name: this.todo,
+                  seq: Number(this.priority),
+                  isStrikedOff:false,
+                });
+                // sort the this.todos array
+              this.todos.sort( (a, b) => { return a.seq - b.seq })
+              // sort array complete
+                this.todo = "";
+                this.priority = "";
+                this.isError= false
             } else{
                 this.isError=true
             }
         },
             deleteToDo(index){
-                this.todos.splice(index, 1)
-            }
+                this.removedTodos.push(...this.todos.splice(index, 1));
+                
+            },
+
     }
 }
 </script>
@@ -61,7 +105,7 @@ body{
     padding: 10px;
     border: 3px solid #11856c;
     width: 40%;
-    height: 500px;
+    height: 1000px;
     margin: auto;
     background-color: #040101;
     color: #11856c;
@@ -75,6 +119,7 @@ body{
     width: 20%;
     height: 31px;
     background-color: #11856c;
+    margin: 10px;
 }
 
 .btn:hover {
@@ -112,5 +157,14 @@ body{
 
 .remove:hover {
     cursor: pointer;
+}
+
+h4 {
+    margin-left: 10px;
+    margin-top: 0px;
+}
+
+.strikeout{
+    text-decoration: line-through;
 }
 </style>
