@@ -6,16 +6,43 @@
             <h4 v-if="isError==true">Please insert a value</h4>
             <input type="text" class="input" placeholder="Sr no." @keypress="validateNumber" v-model="priority" />
             <h4 v-if="isErrorNum">Please insert a number</h4>
+            <input type="text" v-model="Desc_box" id="Description" class="input" placeholder="Description" />
+            <input type="text" v-model="Cat_box" id="Category" class="input" placeholder="Category" />
             <br/>
             <input type="button" value="Add" id="btnClick" class="btn" 
             @click="storeToDo"/>
             <!-- <span id="error"></span> -->
-            <h3 style="padding-left: 10px;">ToDo List</h3>
+            <div style="display: flex; justify-content: space-between;"> 
+                <div><h3 style="padding-left: 10px;">ToDo List</h3></div>
+                <div style="margin-top: 20px;">
+                    <div class="filter-box">
+                        <select class="form-control" v-model="selectedCategory" >
+                          <!-- <option value="" selected disabled>Category</option> -->
+                            <option value="" selected enabled >All </option>
+                            <option
+                                v-for="(cat, index) in dropDown"
+                                :key="index"
+                                style="background-color: white; color: black; font-weight: bold;">
+                        {{ cat }}
+                            </option>
+                        </select>
+
+                          <!-- <option v-for="(todo,index) in todos"  :key="index" style="background-color: white; color: black; font-weight: bold;">
+                            {{ todo.cat }} -->
+                  </div>
+                </div>
+        </div>
+            
             <hr size="1" width="100%" color="white" />
             <ul id="box">
-                <li v-for="(todo,index) in todos" :key="index" :class="{'strikeout': todo.isStrikedOff == true}">
+                <li v-for="(todo,index) in computed_items" :key="index" :class="{'strikeout': todo.isStrikedOff == true}">
+                    <div>
                    {{ todo.seq }}
-                   {{ todo.name }} 
+                   {{ todo.name }}
+                    <div class="desc_display">
+                        {{ todo.desc }} 
+                    </div>
+                    </div> 
                    
 
                     <button @click="deleteToDo(index)" class="remove">Remove</button>
@@ -28,8 +55,11 @@
                        <div class="strikeout">
                           {{ todo.seq }} .
                           {{ todo.name }}
+                          <div class="desc_display">
+                              {{ todo.desc }} 
+                          </div>  
                        </div> 
-                        <!-- <button class="remove-btn delete-btn" @click="clearTodo(index) ">Delete</button> -->
+                        <button class="remove-btn delete-btn" @click="clearTodo(index) ">Delete</button>
                     </li>
             </ul>
         </div>
@@ -52,7 +82,10 @@ export default {
         priorities: [],
         isErrorNum: false,
         removeTodo: "",
-        removedTodos: []
+        removedTodos: [],
+        Desc_box: "",
+        // Cat: "",
+        selectedCategory: ""
         };
 
     },
@@ -76,6 +109,8 @@ export default {
                  this.todos.push({
                   name: this.todo,
                   seq: Number(this.priority),
+                  desc: this.Desc_box,
+                  cat: this.Cat_box,
                   isStrikedOff:false,
                 });
                 // sort the this.todos array
@@ -83,6 +118,8 @@ export default {
               // sort array complete
                 this.todo = "";
                 this.priority = "";
+                this.Desc_box = "";
+                this.Cat_box = "";
                 this.isError= false
             } else{
                 this.isError=true
@@ -92,8 +129,61 @@ export default {
                 this.removedTodos.push(...this.todos.splice(index, 1));
                 
             },
+            clearTodo(index){
+                this.removedTodos.splice(index, 1)
+            }
 
-    }
+    },
+    computed: {
+        computed_items: function () {
+            if(this.selectedCategory!=="") {
+                let filtertype = this.todos.filter((a)=>{
+            if(a.cat === this.selectedCategory){
+                return a;
+            } 
+        }) 
+        return filtertype;
+        } else {
+          return this.todos;
+        }
+      },
+        dropDown() {
+        let arr= [];
+        this.todos.forEach((e) => {
+          arr.push(e.cat);
+        });
+        let unique = arr.filter((item, i, ar) => ar.indexOf(item) === i);
+          return unique;
+      }
+    },
+
+    mounted()
+   {
+     console.log('App mounted!');
+     if (localStorage.getItem('todos')) this.todos = JSON.parse(localStorage.getItem('todos'));
+     if (localStorage.getItem('removedTodos')) this.removedTodos = JSON.parse(localStorage.getItem('removedTodos'));
+   },
+   watch:
+   {
+     todos:
+     {
+       handler()
+       {
+         console.log('Todos changed!');
+         localStorage.setItem('todos', JSON.stringify(this.todos));
+       },
+       deep: true,
+     },
+     removedTodos:
+     {
+       handler()
+       {
+         console.log('Todos changed!');
+         localStorage.setItem('removedTodos', JSON.stringify(this.removedTodos));
+       },
+       deep: true,
+     },
+   },
 }
 </script>
 
@@ -166,5 +256,21 @@ h4 {
 
 .strikeout{
     text-decoration: line-through;
+}
+
+.desc_display {
+  color: rgb(192,192,192);
+  justify-content: left;
+}
+
+.filter-box {
+  margin-top: 22.5px;
+}
+
+.form-control {
+  background-color: #11856c;
+  color: white;
+  width: 120px;
+  border-radius: 5px;
 }
 </style>
